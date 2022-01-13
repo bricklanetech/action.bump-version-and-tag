@@ -1,0 +1,6 @@
+# for security: ignore all files by default
+*
+# include required files as an exception
+!entrypoint.sh
+!lib/semver.sh
+!README.md
