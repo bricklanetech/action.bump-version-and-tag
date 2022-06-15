@@ -144,7 +144,7 @@ echo "Pushing tags"
 git push "${remote_repo}" --tags -f || die "Failed to push ${tag_message}"
 
 # Output new tag for use in other Github Action jobs
-echo "::set-output name=new_version_tag::${new_version_tag}"
+echo "::set-output name=tag::${new_version_tag}"
 echo "Commit SHA: ${GITHUB_SHA} has been tagged with ${new_version_tag}"
 echo "Successfully performed ${GITHUB_ACTION}"
 # exit with a non-zero status to flag an error/failure

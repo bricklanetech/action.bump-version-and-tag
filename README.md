@@ -34,12 +34,11 @@ jobs:
 
 ## Outputs
 
-- `old_image_digest`: In the case that a Docker image tagged with the branch name already exists in the AWS ECR repository, this output variable will hold the value of the Docker image digest. If there are no Docker images tagged with the branch name, then this will be empty.
-- `new_image_digest`: This output variable will hold the Docker image digest of the newly built image.
+- `tag`: The name of the new tag created
 
 ## Versioning
 
-Versioning is performed with the SemVer format (_major_._minor_._patch_). By default the _patch_ number will be incremented on merge. _Major_ and _minor_ bumps are be controlled by the keywords `#major` and `#minor` found in the commit messages created since the lat version. In the case of multiple keywords, `#major` takes priority.
+Versioning is performed with the SemVer format (_major_._minor_._patch_). By default the _patch_ number will be incremented on merge. _Major_ and _minor_ bumps are be controlled by the keywords `#major` and `#minor` found in the commit messages created since the last tag created on the same branch. In the case of multiple keywords, `#major` takes priority.
 
 As tags will be specific to the branch they are on, tags will be in the form of `[BRANCH_NAME]/1.0.0`.
 

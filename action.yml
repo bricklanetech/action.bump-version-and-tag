@@ -5,7 +5,10 @@ inputs:
     description: 'Prefix to use for tag, default: {branch-name}/v'
     default: '{default}'
     required: false
+outputs:
+  tag:
+    description: the name of the tag created at the HEAD of the current branch
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: docker
+  image: Dockerfile
 # for additional options, see: https://help.github.com/en/articles/metadata-syntax-for-github-actions
