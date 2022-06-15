@@ -92,6 +92,7 @@ move_previous_tag() {
 # Configure git cli tool
 git config --global user.email "actions@github.com"
 git config --global user.name "${GITHUB_ACTOR}"
+git config --global --add safe.directory /github/workspace
 remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
 # Retrieve current branch name
