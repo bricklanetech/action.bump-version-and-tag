@@ -10,16 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout with full history
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Bump and Tag
+      - name: Bump version and create new SemVer tag
         uses: ./
         with:
           prefix: 'v'
 
-      - name: Move 'latest' tag to HEAD
+      - name: Move 'latest' tag to current commit ref
         uses: EndBug/latest-tag@latest
 
       - name: Move SemVer major & minor tags automatically
