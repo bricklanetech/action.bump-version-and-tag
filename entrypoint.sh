@@ -2,10 +2,10 @@
 
 # Convenience function to output an error message and exit with non-zero error code
 die() {
-	local _ret=$2
-	test -n "$_ret" || _ret=1
-	printf "$1\n" >&2
-	exit ${_ret}
+  local _ret=$2
+  test -n "$_ret" || _ret=1
+  printf "$1\n" >&2
+  exit ${_ret}
 }
 
 get_previous_version_tag() {
@@ -52,11 +52,22 @@ get_bump_level_from_git_commit_messages() {
     return ${git_log_exit_code}
   fi
 
-  # Search commit messages for presence of #major or #minor to determine verison bump level
-  # #major takes precedence
-  if [[ $commit_messages == *"#major"* ]]; then
+  # Search commit messages for presence of #major or #minor labels or convetional commit flags
+  # to determine symantic bump level
+  # major > minor > patch
+  while read -r line; do
+    REGEX_MAJOR="^(#major|[a-z]+\!:|BREAKING_CHANGE:)"
+    REGEX_MINOR="^(#minor|feat:)"
+    if [[ $line =~ $REGEX_MAJOR ]]; then
+      bump_major=true
+    elif [[ $line =~ $REGEX_MINOR ]]; then
+      bump_minor=true
+    fi
+  done < <(printf "$commit_messages\n")
+
+  if [ -n "$bump_major" ]; then
     bump_level="major"
-  elif [[ $commit_messages == *"#minor"* ]]; then
+  elif [ -n "$bump_minor" ]; then
     bump_level="minor"
   fi
 
