@@ -1,0 +1,26 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Bump and Tag
+        uses: ./
+        with:
+          prefix: 'v'
+
+      - name: Move 'latest' tag to HEAD
+        uses: EndBug/latest-tag@latest
+
+      - name: Move SemVer major & minor tags automatically
+        uses: kellyselden/move-semver-tags-action@v2
