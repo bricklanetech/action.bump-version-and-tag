@@ -4,7 +4,7 @@ repository:
   name: action.bump-version-and-tag
   description: Uses commits after last tag to create new tag based on SemVer
   topics: github action version
-  private: true
+  private: false
   has_issues: false
   has_wiki: false
   is_template: false
