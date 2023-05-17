@@ -124,7 +124,7 @@ if [ -z ${previous_version_tag} ]; then
   previous_version="0.0.0"
 else
   # A previous tag matching the tag prefix was found, output it for future steps
-  echo "::set-output name=previous_version_tag::${previous_version_tag}"
+  echo "previous_version_tag=${previous_version_tag}" >> $GITHUB_OUTPUT
   previous_version=${previous_version_tag#${version_tag_prefix}}
 fi
 echo "Previous version tag: ${previous_version_tag:-"Not found"}"
@@ -154,8 +154,10 @@ git tag -a -m "${tag_message}" "${new_version_tag}" "${GITHUB_SHA}" -f || die "F
 echo "Pushing tags"
 git push "${remote_repo}" --tags -f || die "Failed to push ${tag_message}"
 
-# Output new tag for use in other Github Action jobs
-echo "::set-output name=tag::${new_version_tag}"
+# Output new and previous tag names for use in other Github Action jobs
+echo "tag=${new_version_tag}" >> $GITHUB_OUTPUT
+echo "previous_tag=${previous_version_tag}" >> $GITHUB_OUTPUT
+
 echo "Commit SHA: ${GITHUB_SHA} has been tagged with ${new_version_tag}"
 echo "Successfully performed ${GITHUB_ACTION}"
 # exit with a non-zero status to flag an error/failure
