@@ -4,7 +4,7 @@
 die() {
   local _ret=$2
   test -n "$_ret" || _ret=1
-  printf "$1\n" >&2
+  printf "%s\n" "$1" >&2
   exit ${_ret}
 }
 
@@ -14,7 +14,7 @@ get_previous_version_tag() {
 
   # Get last annoted tag that has the version tag prefix
   # stderr redirected to stdout to collect any error messages
-  previous_version_tag=$(git describe --abbrev=0 --tags --match="${version_tag_prefix}?*.?*.?*" 2>&1)
+  previous_version_tag=$(git describe --abbrev=0 --tags --match="${tag_prefix}?*.?*.?*" 2>&1)
   local git_decribe_exit_code=$?
 
   if [ ${git_decribe_exit_code} -ne 0 ]; then
@@ -23,29 +23,29 @@ get_previous_version_tag() {
       return 0
     else
       # Something else went wrong, print error to stderr and exit with non zero
-      echo ${previous_version_tag} >&2
+      echo "${previous_version_tag}" >&2
       return ${git_decribe_exit_code}
     fi
   fi
 
   # everything went fine and the previous version_tag was found
-  echo ${previous_version_tag}
+  echo "${previous_version_tag}"
 }
 
 get_bump_level_from_git_commit_messages() {
   local previous_tag=$1
   local bump_level="patch"
-  local commit_messages
+  local commit_messages=""
 
-  if [ -z ${previous_tag} ]; then
+  if [ -z "${previous_tag}" ]; then
     # Return default if no previous tag has been passed
-    echo ${bump_level}
+    echo "${bump_level}"
     return 0
   fi
 
   # Default version bump level is patch
   # Get all commit titles since the previous_tag
-  commit_messages=$(git log --pretty=oneline HEAD...${previous_tag})
+  commit_messages=$(git log --pretty=oneline HEAD..."${previous_tag}")
   local git_log_exit_code=$?
 
   if [ ${git_log_exit_code} -ne 0 ]; then
@@ -58,12 +58,12 @@ get_bump_level_from_git_commit_messages() {
   while read -r line; do
     REGEX_MAJOR="^(#major|[a-z]+\!:|BREAKING_CHANGE:)"
     REGEX_MINOR="^(#minor|feat:)"
-    if [[ $line =~ $REGEX_MAJOR ]]; then
+    if [[ "$line" =~ $REGEX_MAJOR ]]; then
       bump_major=true
-    elif [[ $line =~ $REGEX_MINOR ]]; then
+    elif [[ "$line" =~ $REGEX_MINOR ]]; then
       bump_minor=true
     fi
-  done < <(printf "$commit_messages\n")
+  done < <(printf "%s\n" "$commit_messages")
 
   if [ -n "$bump_major" ]; then
     bump_level="major"
@@ -71,11 +71,11 @@ get_bump_level_from_git_commit_messages() {
     bump_level="minor"
   fi
 
-  echo ${bump_level}
+  echo "${bump_level}"
 }
 
 is_hotfix() {
-  source_branch=$(hub api /repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls -H "accept: application/vnd.github.groot-preview+json" | jq .[0].head.label)
+  source_branch=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" -H "accept: application/vnd.github.groot-preview+json" | jq .[0].head.label)
   if [[ ${source_branch} == *"hotfix/"* ]]; then
     return 0
   fi
@@ -117,15 +117,15 @@ else
 fi
 
 # Retrieve previous tag that matches the version tag prefix
-previous_version_tag=$(get_previous_version_tag ${version_tag_prefix}) || die "Failed to retrieve previous tags"
+previous_version_tag=$(get_previous_version_tag "${version_tag_prefix}") || die "Failed to retrieve previous tags"
 
-if [ -z ${previous_version_tag} ]; then
+if [ -z "${previous_version_tag}" ]; then
   # No previous version tag found. Setting previous version to be 0.0.0
   previous_version="0.0.0"
 else
   # A previous tag matching the tag prefix was found, output it for future steps
-  echo "previous_version_tag=${previous_version_tag}" >> $GITHUB_OUTPUT
-  previous_version=${previous_version_tag#${version_tag_prefix}}
+  echo "previous_version_tag=${previous_version_tag}" >>"${GITHUB_OUTPUT}"
+  previous_version="${previous_version_tag#"${version_tag_prefix}"}"
 fi
 echo "Previous version tag: ${previous_version_tag:-"Not found"}"
 
@@ -137,11 +137,11 @@ if is_hotfix; then
   tag_message="Apply hotfix, moving ${previous_version_tag} to latest ${branch_name}"
 else
   # Get version bump level from previous commit messages
-  bump_level=$(get_bump_level_from_git_commit_messages ${previous_version_tag}) || die "Failed to retrieve commit messages since previous tag"
+  bump_level=$(get_bump_level_from_git_commit_messages "${previous_version_tag}") || die "Failed to retrieve commit messages since previous tag"
   echo "Version bump level: ${bump_level}"
 
   # Bump the version number
-  new_version=$(semver bump ${bump_level} ${previous_version}) || die "Failed to bump the ${bump_level} version of ${previous_version}"
+  new_version=$(semver bump "${bump_level}" "${previous_version}") || die "Failed to bump the ${bump_level} version of ${previous_version}"
   new_version_tag=${version_tag_prefix}${new_version}
   tag_message="Bump ${branch_name} tag from ${previous_version_tag} to ${new_version_tag}"
 fi
@@ -155,8 +155,8 @@ echo "Pushing tags"
 git push "${remote_repo}" --tags -f || die "Failed to push ${tag_message}"
 
 # Output new and previous tag names for use in other Github Action jobs
-echo "tag=${new_version_tag}" >> $GITHUB_OUTPUT
-echo "previous_tag=${previous_version_tag}" >> $GITHUB_OUTPUT
+echo "tag=${new_version_tag}" >>"${GITHUB_OUTPUT}"
+echo "previous_tag=${previous_version_tag}" >>"${GITHUB_OUTPUT}"
 
 echo "Commit SHA: ${GITHUB_SHA} has been tagged with ${new_version_tag}"
 echo "Successfully performed ${GITHUB_ACTION}"
