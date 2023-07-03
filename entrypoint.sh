@@ -44,8 +44,11 @@ get_bump_level_from_git_commit_messages() {
   fi
 
   # Default version bump level is patch
-  # Get all commit titles since the previous_tag
-  commit_messages=$(git log --pretty=oneline HEAD..."${previous_tag}")
+  # Get relevent PR title and all commit titles since the previous_tag
+  pr_title=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" | jq -r .[0].title 2>/dev/null)
+  commit_messages=$(git log --pretty=%s HEAD..."${previous_tag}")
+
+  commit_messages="${commit_messages}"$'\n'"${pr_title}"
   local git_log_exit_code=$?
 
   if [ ${git_log_exit_code} -ne 0 ]; then
