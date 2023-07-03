@@ -78,8 +78,8 @@ get_bump_level_from_git_commit_messages() {
 }
 
 is_hotfix() {
-  source_branch=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" -H "accept: application/vnd.github.groot-preview+json" | jq .[0].head.label)
-  if [[ ${source_branch} == *"hotfix/"* ]]; then
+  source_branch=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" -H "accept: application/vnd.github.groot-preview+json" | jq -r .[0].head.ref)
+  if [[ "${source_branch}" =~ ^hotfix/ ]]; then
     return 0
   fi
   return 1
@@ -162,5 +162,4 @@ echo "tag=${new_version_tag}" >>"${GITHUB_OUTPUT}"
 echo "previous_tag=${previous_version_tag}" >>"${GITHUB_OUTPUT}"
 
 echo "Commit SHA: ${GITHUB_SHA} has been tagged with ${new_version_tag}"
-echo "Successfully performed ${GITHUB_ACTION}"
 # exit with a non-zero status to flag an error/failure
