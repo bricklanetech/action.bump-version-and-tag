@@ -45,10 +45,14 @@ get_bump_level_from_git_commit_messages() {
 
   # Default version bump level is patch
   # Get relevent PR title and all commit titles since the previous_tag
-  pr_title=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" | jq -r .[0].title 2>/dev/null)
-  commit_messages=$(git log --pretty=%s HEAD..."${previous_tag}")
+  pr_message=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" | jq -r '.[0].title + .[0].body' 2>/dev/null | tr -d '……' | tr -s '\r\n' ' ')
+  commit_messages=$(git rev-list HEAD..."v0.0.2" |
+    while read -r sha1; do
+      git show -s --format='%B' "${sha1}" | tr -s '\n' ' '
+      echo
+    done)
 
-  commit_messages="${commit_messages}"$'\n'"${pr_title}"
+  commit_messages="${commit_messages}"$'\n'"${pr_message}"
   local git_log_exit_code=$?
 
   if [ ${git_log_exit_code} -ne 0 ]; then
@@ -59,7 +63,7 @@ get_bump_level_from_git_commit_messages() {
   # to determine symantic bump level
   # major > minor > patch
   while read -r line; do
-    REGEX_MAJOR="^(#major|[a-z]+\!:|BREAKING_CHANGE:)"
+    REGEX_MAJOR="^(#major|([[:alnum:]][[:alnum:]\/\-_]+(\([[:alnum:]][[:alnum:]\/\-_:]+\))?(!)?):|BREAKING_CHANGE:)"
     REGEX_MINOR="^(#minor|feat:)"
     if [[ "$line" =~ $REGEX_MAJOR ]]; then
       bump_major=true
