@@ -44,15 +44,16 @@ get_bump_level_from_git_commit_messages() {
   fi
 
   # Default version bump level is patch
-  # Get relevent PR title and all commit titles since the previous_tag
+  # Get relevent PR message and all commit messages since the previous_tag
   pr_message=$(hub api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" | jq -r '.[0].title + .[0].body' 2>/dev/null | tr -d '……' | tr -s '\r\n' ' ')
-  commit_messages=$(git rev-list HEAD..."v0.0.2" |
+  commit_messages=$(git rev-list HEAD..."${previous_tag}" |
     while read -r sha1; do
       git show -s --format='%B' "${sha1}" | tr -s '\n' ' '
       echo
     done)
 
-  commit_messages="${commit_messages}"$'\n'"${pr_message}"
+  commit_messages="${pr_message}"$'\n'"${commit_messages}"
+
   local git_log_exit_code=$?
 
   if [ ${git_log_exit_code} -ne 0 ]; then
