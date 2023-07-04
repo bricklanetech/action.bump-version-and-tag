@@ -64,7 +64,7 @@ get_bump_level_from_git_commit_messages() {
   # to determine symantic bump level
   # major > minor > patch
   while read -r line; do
-    REGEX_MAJOR="^(#major|([[:alnum:]][[:alnum:]\/\-_]+(\([[:alnum:]][[:alnum:]\/\-_:]+\))?(!)?):|BREAKING_CHANGE:)"
+    REGEX_MAJOR="^(#major|([[:alnum:]][[:alnum:]\/\-_]+(\([[:alnum:]][[:alnum:]\/\-_:]+\))?!):|BREAKING CHANGE:)"
     REGEX_MINOR="^(#minor|feat:)"
     if [[ "$line" =~ $REGEX_MAJOR ]]; then
       bump_major=true
