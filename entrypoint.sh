@@ -65,7 +65,7 @@ get_bump_level_from_git_commit_messages() {
   # major > minor > patch
   while read -r line; do
     REGEX_MAJOR="(^(((#major)|([[:alnum:]][[:alnum:]\/\-_]+(\([[:alnum:]][[:alnum:]\/\-_:]+\))?)!):)|(BREAKING CHANGE:))"
-    REGEX_MINOR="^(#minor|feat:)"
+    REGEX_MINOR="^(#minor|feat(\([[:alnum:]][[:alnum:]\/\-_:]+\))?:)"
     if [[ "$line" =~ $REGEX_MAJOR ]]; then
       bump_major=true
     elif [[ "$line" =~ $REGEX_MINOR ]]; then
